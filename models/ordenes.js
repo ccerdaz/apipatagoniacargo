@@ -53,6 +53,8 @@ module.exports = (sequelize, type) => {
         FechaAnulacion: type.DATE,
         QuienAnulo: type.STRING(45),
         OrdenDeCompra: type.STRING(45),
+        GiroDestinatario: type.STRING(100),
+        EmailDestinatario: type.STRING(45),
     })
 }
 

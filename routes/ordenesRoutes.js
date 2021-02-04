@@ -15,7 +15,7 @@ module.exports = function (router) {
 
     // Trae las que están completadas y las que no
     router.get("/api/getallordenesbydate/:year/:month/:day", async (req, res) => {
-        console.log('pasó por getordenesbydate')
+        console.log('pasó por getallordenesbydate')
         let year = req.params.year
         let month = req.params.month
         let day = req.params.day
@@ -28,6 +28,27 @@ module.exports = function (router) {
         console.log('hasta', hasta);
         Ordenes.findAll({
             where: {
+                FechaRetiro: { [Op.between]: [desde, hasta] },
+            }
+        }).then(ordenes => { res.json(ordenes) })
+    });
+
+    //Trae sólo las que están en Estado=RETIRADO
+    router.get("/api/getordenesmanifiesto/:year/:month/:day", async (req, res) => {
+        console.log('pasó por getordenesmanifiesto')
+        let year = req.params.year
+        let month = req.params.month
+        let day = req.params.day
+        console.log('day', day);
+        console.log('month', month);
+
+        let desde = new Date(year, month - 1, day, 0, 0, 0)
+        let hasta = new Date(year, month - 1, day, 23, 59, 59)
+        console.log('desde', desde);
+        console.log('hasta', hasta);
+        Ordenes.findAll({
+            where: {
+                // Estado: 'RETIRADO'
                 FechaRetiro: { [Op.between]: [desde, hasta] },
             }
         }).then(ordenes => { res.json(ordenes) })
@@ -54,30 +75,116 @@ module.exports = function (router) {
         }).then(ordenes => { res.json(ordenes) })
     });
 
+    //Trae por fecha y OT opcional
+    router.get("/api/getordenesbydateandot/:year/:month/:day/:otasignado", async (req, res) => {
+        console.log('pasó por getordenesbydateandot')
+        let year = req.params.year
+        let month = req.params.month
+        let day = req.params.day
+        let desde = new Date(year, month - 1, day, 0, 0, 0)
+        let hasta = new Date(year, month - 1, day, 23, 59, 59)
+        console.log('desde', desde);
+        console.log('hasta', hasta);
+        let otasignado = req.params.otasignado;
+        let query = {
+            FechaRetiro: {
+                [Op.between]: [desde, hasta]
+            }
+        }
+        if (otasignado == 'true') {
+            query = {
+                FechaRetiro: {
+                    [Op.between]: [desde, hasta],
+                    NumeroOTAsignado: 1
+                }
+            }
+        }
+        Ordenes.findAll({
+            where: query
+        }).then(ordenes => { res.json(ordenes) })
+    });
+
+    //Trae sólo las que tienen número de OT asignado Mes y Año
     router.get("/api/getordenesbyyearmonth/:year/:month", async (req, res) => {
         console.log('pasó por getordenesbyyearmonth')
         let year = req.params.year
         let month = req.params.month
         console.log('year', year);
         console.log('month', month);
-        let lastday = metodos.getLastDayOfMonth(+month)
-        console.log('lastday', lastday);
+
+        let lastDay = metodos.getLastDayOfMonth(+month)
+        console.log('lastDay', lastDay);
+
         let desde = new Date(year, month - 1, 1, 0, 0, 0)
-        let hasta = new Date(year, month - 1, lastday, 23, 59, 59)
+        let hasta = new Date(year, month - 1, lastDay, 23, 59, 59)
         console.log('desde', desde);
         console.log('hasta', hasta);
         Ordenes.findAll({
             where: {
                 FechaRetiro: { [Op.between]: [desde, hasta] },
-                NumeroOTAsignado: 1
+                // NumeroOTAsignado: true
+            }
+        }).then(ordenes => { res.json(ordenes) })
+    });
+
+    //Ordenes que pueden ser facturadas
+    router.get("/api/getordenesfacturacion", async (req, res) => {
+        console.log('pasó por getordenesfacturacion')
+        Ordenes.findAll({
+            where: {
+                NumeroOTAsignado: true,
+                [Op.or]: [
+                    { Estado: 'ENVIADO' },
+                    { Estado: 'ENTREGADO' }
+                ]
             },
             include: [
                 { model: Documentos },
                 { model: Articulos },
             ],
-            order: [['FechaRetiro', 'desc']]
+            order: [['NumeroOT', 'desc']],
+            limit: 200
         }).then(ordenes => { res.json(ordenes) })
     });
+
+    //Últimas órdenes independiente de la fecha 
+    router.get("/api/getlastordenes", async (req, res) => {
+        console.log('pasó por getlastordenes')
+        Ordenes.findAll({
+            where: { NumeroOTAsignado: true },
+            include: [
+                { model: Documentos },
+                { model: Articulos },
+            ],
+            order: [['NumeroOT', 'desc']],
+            limit: 200
+        }).then(ordenes => { res.json(ordenes) })
+    });
+
+    // router.get("/api/getordenesbyyearmonth/:year/:month", async (req, res) => {
+    //     console.log('pasó por getordenesbyyearmonth')
+    //     let year = req.params.year
+    //     let month = req.params.month
+    //     console.log('year', year);
+    //     console.log('month', month);
+    //     let lastday = metodos.getLastDayOfMonth(+month)
+    //     console.log('lastday', lastday);
+    //     let desde = new Date(year, month - 1, 1, 0, 0, 0)
+    //     let hasta = new Date(year, month - 1, lastday, 23, 59, 59)
+    //     console.log('desde', desde);
+    //     console.log('hasta', hasta);
+    //     Ordenes.findAll({
+    //         where: {
+    //             FechaRetiro: { [Op.between]: [desde, hasta] },
+    //             NumeroOTAsignado: 1
+    //         },
+    //         include: [
+    //             { model: Documentos },
+    //             { model: Articulos },
+    //         ],
+    //         order: [['FechaRetiro', 'desc']]
+    //     }).then(ordenes => { res.json(ordenes) })
+    // });
 
     router.get("/api/getordenesbycliente/:idcliente", async (req, res) => {
         console.log('pasó por getordenesbycliente')
@@ -156,10 +263,11 @@ module.exports = function (router) {
         if (documentos != undefined)
             documentos.forEach(doc => {
                 req.body.DocumentosConcat += doc.documento + ': ' + doc.numero + '\n'
+                if (doc.valor === '')
+                    doc.valor = 0
             });
 
         let articulos = req.body.Articulos
-
 
         Ordenes.update(req.body, { where: { Id: req.body.Id } }).then(orden => {
 
@@ -169,7 +277,9 @@ module.exports = function (router) {
                     if (documentos != undefined) {
                         documentos.forEach(doc => {
                             doc.IdOrden = req.body.Id
-                        });
+                            if (doc.valor === '')
+                                doc.valor = 0
+                        }); 
                         Documentos.bulkCreate(documentos).then()
                     }
                 })
@@ -218,6 +328,9 @@ module.exports = function (router) {
             if (documentos != undefined) {
                 documentos.forEach(doc => {
                     doc.IdOrden = neworden.Id
+
+                    if (doc.valor === '')
+                        doc.valor = 0
                 });
                 Documentos.bulkCreate(documentos).then()
             }

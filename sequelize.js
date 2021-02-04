@@ -17,7 +17,7 @@ const sequelize = new Sequelize('patagonia', 'zetta2019', 'zetta2019', {
   host: 'www.zst.cl', //'45.236.130.84', //
   dialect: 'mysql',
   logging: false,
-  operatorsAliases: 0, 
+  operatorsAliases: 0,
   pool: {
     max: 10,
     min: 0,
