@@ -14,7 +14,7 @@ let io = require('socket.io')(server);
 
 var metodos = require('./metodos');
 
-module.exports = {
+module.exports = { 
     io: io,
     app: app,
     server: server

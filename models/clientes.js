@@ -17,6 +17,7 @@ module.exports = (sequelize, type) => {
         Telefono: type.STRING(100),
         Email: type.STRING(100),
         NombreTarifa: type.STRING(10),
-        FormaPago: type.STRING(100)
+        FormaPago: type.STRING(100),
+        BoletaFactura: type.STRING(20)
     })
 }

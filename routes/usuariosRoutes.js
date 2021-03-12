@@ -23,6 +23,12 @@ module.exports = function (router) {
         Usuarios.update(req.body, { where: { Id: req.body.Id } }).then(usuario => { res.json('Registro actualizado') })
     });
 
+    // Update último ingreso
+    router.put("/api/updateUltimoAcceso", (req, res) => {
+        console.log('pasó por updateUltimoAcceso')
+        Usuarios.update({UltimoAcceso: new Date()}, { where: { Id: req.body.Id } }).then(usuario => { res.json('updateUltimoAcceso') })
+    });
+
     router.post('/api/login', (req, res) => {
         console.log('Pasó por login')
         console.log('123456: ' + metodos.encripta('123456'))
@@ -79,7 +85,7 @@ module.exports = function (router) {
                     res.status(403).json('Este Email ya existe en la base de datos');
                     return;
                 }
-                Usuarios.create(req.body).then(newusuario => res.json(newusuario))
+                Usuarios.create(req.body).then(newusuario => res.json(newusuario)) 
             })
     });
 

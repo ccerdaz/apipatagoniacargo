@@ -10,11 +10,11 @@ module.exports = (sequelize, type) => {
         Password: type.STRING(200),
         Habilitado: { type: type.BOOLEAN, defaultValue: true },
         TipoUsuario: { type: type.STRING(15), defaultValue: 'OBSERVADOR' },
-        Rut: type.INTEGER,
+        Rut: type.STRING(15),
         Telefono: type.STRING(50),
         UltimoAcceso: type.DATE, 
         CreadoPor: type.STRING(40),
-        ModificadoPor: type.STRING(40),
+        ModificadoPor: type.STRING(40), 
     })
 }
 

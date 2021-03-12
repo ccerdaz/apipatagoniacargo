@@ -14,11 +14,11 @@ const TarifasModel = require('./models/tarifas')
 const RutasDiariasModel = require('./models/rutasdiarias')
 
 const sequelize = new Sequelize('patagonia', 'zetta2019', 'zetta2019', {
-  host: 'www.zst.cl', //'45.236.130.84', //
+  host:  'www.zst.cl',//'45.236.130.84', //
   dialect: 'mysql',
   logging: false,
   operatorsAliases: 0,
-  pool: {
+  pool: { 
     max: 10,
     min: 0,
     acquire: 30000,

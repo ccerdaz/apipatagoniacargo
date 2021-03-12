@@ -55,6 +55,15 @@ module.exports = (sequelize, type) => {
         OrdenDeCompra: type.STRING(45),
         GiroDestinatario: type.STRING(100),
         EmailDestinatario: type.STRING(45),
+
+        FechaEntrega: type.DATE,
+        HoraEntrega: type.STRING(8),
+        RecibidoPor: type.STRING(100),
+        RutReceptor: type.STRING(15),
+        FechaInicial: type.DATE,
+        CreadoPor: type.STRING(45),
+        NumeroFactura: type.STRING(20),
+        MedioDePago: type.STRING(20),
     })
 }
 

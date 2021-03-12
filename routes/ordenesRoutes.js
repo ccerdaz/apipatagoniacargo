@@ -1,7 +1,9 @@
 const { Ordenes, Documentos, Articulos } = require("../sequelize");
 var Sequelize = require('sequelize');
 const Op = Sequelize.Op;
-const metodos = require('../metodos')
+const metodos = require('../metodos');
+//const { callbackPromise } = require("nodemailer/lib/shared");
+const io = require('../apipatagonia.js').io;
 
 module.exports = function (router) {
 
@@ -76,16 +78,19 @@ module.exports = function (router) {
     });
 
     //Trae por fecha y OT opcional
-    router.get("/api/getordenesbydateandot/:year/:month/:day/:otasignado", async (req, res) => {
+    router.get("/api/getordenesbydateandot/:year/:month/:day/:diasAdelante/:otasignado", async (req, res) => {
         console.log('pasó por getordenesbydateandot')
         let year = req.params.year
         let month = req.params.month
         let day = req.params.day
-        let desde = new Date(year, month - 1, day, 0, 0, 0)
-        let hasta = new Date(year, month - 1, day, 23, 59, 59)
+        let desde = new Date(year, month - 1, day, 23, 59, 59)
+        let diasAdelante = +req.params.diasAdelante
+        let hasta = new Date(desde)
+        hasta.setDate(hasta.getDate() + diasAdelante);
         console.log('desde', desde);
         console.log('hasta', hasta);
         let otasignado = req.params.otasignado;
+        console.log('otasignado', otasignado);
         let query = {
             FechaRetiro: {
                 [Op.between]: [desde, hasta]
@@ -94,11 +99,13 @@ module.exports = function (router) {
         if (otasignado == 'true') {
             query = {
                 FechaRetiro: {
-                    [Op.between]: [desde, hasta],
-                    NumeroOTAsignado: 1
-                }
+                    [Op.between]: [desde, hasta]
+                },
+                NumeroOTAsignado: 1
             }
+
         }
+        console.log('query', query);
         Ordenes.findAll({
             where: query
         }).then(ordenes => { res.json(ordenes) })
@@ -219,14 +226,19 @@ module.exports = function (router) {
 
 
     router.put("/api/moveOrderNextDay", async function (req, res) {
+        console.log('pasó por moveOrderNextDay');
         let id = req.body.id
         Ordenes.findOne({ where: { Id: id } })
             .then(orden => {
-                let fecha = new Date(orden.FechaRetiro)
+                let fecha = new Date(orden.FechaRetiro + ' 12:00:00')
                 fecha.setDate(fecha.getDate() + 1)
                 Ordenes.update({ FechaRetiro: fecha }, { where: { Id: id } })
                     .then(updated => {
                         res.json('La orden fue trasladada al siguiente día')
+
+                        // Se emite socket
+                        console.log('Se emite socket');
+                        io.emit('ruta_io', { MoveNext: true, orden: { Id: id } });
                     })
             })
     });
@@ -241,16 +253,22 @@ module.exports = function (router) {
         req.body.FechaRetiro += ' 12:00:00'
         console.log('req.body.NumeroOTAsignado', req.body.NumeroOTAsignado);
 
+        let result = true
         //Verifica que el NumeroOT no exista
-        if (req.body.NumeroOT != null && !req.body.NumeroOTAsignado) {
-            await Ordenes.findOne({ where: { NumeroOT: req.body.NumeroOT } })
+        if (req.body.NumeroOT != null && req.body.NumeroOTAsignado == false) {
+            result = await Ordenes.findOne({ where: { NumeroOT: req.body.NumeroOT } })
                 .then(orden => {
+                    result = true
                     if (orden) {
                         res.status(403).json('Ya existe una OT con el número ' + req.body.NumeroOT)
-                        return
+                        return false
                     }
                 })
         }
+
+        // Si result es false termino el método
+        if (result == false)
+            return;
 
         //Si viene un número de OT y NumeroOTAsignado=false => almaceno NumeroOTAsignado=true
         if (req.body.NumeroOT != null && !req.body.NumeroOTAsignado) {
@@ -279,7 +297,7 @@ module.exports = function (router) {
                             doc.IdOrden = req.body.Id
                             if (doc.valor === '')
                                 doc.valor = 0
-                        }); 
+                        });
                         Documentos.bulkCreate(documentos).then()
                     }
                 })
@@ -294,26 +312,64 @@ module.exports = function (router) {
                         Articulos.bulkCreate(articulos).then()
                     }
                 })
+
+            //No sé para qué es esto
             if (req.body.NumeroOT != null && !req.body.NumeroOTAsignado) {
                 req.json({
                     NumeroOT: req.body.NumeroOT,
                     NumeroOTAsignado: true
                 })
                 return;
-            } else
-                res.json('Registro actualizado')
+            } else {
+                //Busco la orden actualizada para mandarla por socket
+                Ordenes.findOne({ where: { Id: req.body.Id } })
+                    .then(orden => {
+                        res.json('Registro actualizado')
+
+                        // Se emite socket
+                        console.log('Se emite socket');
+                        io.emit('ruta_io', { MoveNext: false, orden: orden });
+                    });
+            }
         })
 
     });
 
-    router.post("/api/neworden", (req, res) => {
+    router.post("/api/neworden", async function (req, res) {
         console.log('pasó por neworden')
         if (req.body.NumeroOT === '')
             req.body.NumeroOT = null
+
+        if (req.body.NumeroOT != null)
+            req.body.NumeroOTAsignado = true
+
         if (req.body.TarifaAplicada === '')
             req.body.TarifaAplicada = null
 
         req.body.FechaRetiro += ' 12:00:00'
+
+        // Evita que se guarde FechaEntrega=''
+        if (req.body.FechaEntrega === '') { req.body.FechaEntrega = null }
+
+        // Se establece FechaInicial igual a la del Retiro para poder calcular días de postergación
+        req.body.FechaInicial = req.body.FechaRetiro
+        console.log('req.body.FechaInicial', req.body.FechaInicial); 
+
+        let result = true
+        //Verifica que el NumeroOT no exista
+        if (req.body.NumeroOT != null) {
+            result = await Ordenes.findOne({ where: { NumeroOT: req.body.NumeroOT } })
+                .then(orden => {
+                    if (orden) {
+                        res.status(403).json('Ya existe una OT con el número ' + req.body.NumeroOT)
+                        return false
+                    }
+                })
+        }
+
+        // Si result es false termino el método
+        if (result == false)
+            return;
 
         let documentos = req.body.Documentos
         let articulos = req.body.Articulos
@@ -342,9 +398,16 @@ module.exports = function (router) {
                 articulos.IdOrden = neworden.Id
                 Articulos.bulkCreate(articulos).then()
             }
-
+            console.log('Nueva orden almacenada!');
             res.json(neworden)
+
+            // Se emite socket
+            console.log('Se emite socket');
+            io.emit('ruta_io', { MoveNext: false, orden: neworden });
         })
+
+
+
     });
 
     router.put("/api/anulaorden", (req, res) => {
