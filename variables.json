@@ -1,11 +1,13 @@
 {
     "apikey": "928e15a2d14d4a6292345f04960f4bd3",
-    "RUTEmisor": "76795561-8",
-    "RznSoc": "HAULMER SPA",
-    "GiroEmis": "VENTA AL POR MENOR EN EMPRESAS DE VENTA A DISTANCIA VÍA INTERNET; COMERCIO ELEC",
-    "Acteco": 479100,
-    "DirOrigen": "ARTURO PRAT 527   CURICO",
-    "CmnaOrigen": "Curicó",
-    "CdgSIISucur": "81303347",
-    "rutaPostDTE": "https://dev-api.haulmer.com/v2/dte/document"
+    "Emisor": {
+        "RUTEmisor": "76795561-8",
+        "RznSoc": "HAULMER SPA",
+        "GiroEmis": "VENTA AL POR MENOR EN EMPRESAS DE VENTA A DISTANCIA VÍA INTERNET; COMERCIO ELEC",
+        "Acteco": 479100,
+        "DirOrigen": "ARTURO PRAT 527   CURICO",
+        "CmnaOrigen": "Curicó",
+        "CdgSIISucur": "81303347",
+        "rutaPostDTE": "https://dev-api.haulmer.com/v2/dte/document"
+    }
 }

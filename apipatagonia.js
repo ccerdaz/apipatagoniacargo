@@ -33,3 +33,4 @@ require("./routes/tiposdepagosRoutes")(app);
 require("./routes/tarifasRoutes")(app); 
 require("./routes/rutasdiariasRoutes")(app); 
 require("./routes/manifiestosRoutes")(app); 
+require("./routes/dteRoutes")(app); 
