@@ -2,8 +2,9 @@ const { Ordenes, Documentos, Articulos } = require("../sequelize");
 var Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const metodos = require('../metodos');
-//const { callbackPromise } = require("nodemailer/lib/shared");
+var dateFormat = require('dateformat');
 const io = require('../apipatagonia.js').io;
+const isNumber = require("lodash.isnumber");
 
 module.exports = function (router) {
 
@@ -13,6 +14,13 @@ module.exports = function (router) {
         res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
         res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
         next();
+    });
+
+
+    router.get("/api/getordenesbymanifiesto/:numeromanifiesto", async (req, res) => {
+        console.log('pasó por getordenesbymanifiesto');
+        Ordenes.findAll({ where: { ManifiestoAsignado: +req.params.numeromanifiesto } })
+            .then(ordenes => { res.json(ordenes) })
     });
 
     // Trae las que están completadas y las que no
@@ -29,6 +37,10 @@ module.exports = function (router) {
         console.log('desde', desde);
         console.log('hasta', hasta);
         Ordenes.findAll({
+            include: [
+                { model: Documentos, as: 'Documentos' },
+                { model: Articulos, as: 'Articulos' },
+            ],
             where: {
                 FechaRetiro: { [Op.between]: [desde, hasta] },
             }
@@ -36,22 +48,15 @@ module.exports = function (router) {
     });
 
     //Trae sólo las que están en Estado=RETIRADO
-    router.get("/api/getordenesmanifiesto/:year/:month/:day", async (req, res) => {
+    router.get("/api/getordenesmanifiesto/:origen/:destino/:tiposervicio", async (req, res) => {
         console.log('pasó por getordenesmanifiesto')
-        let year = req.params.year
-        let month = req.params.month
-        let day = req.params.day
-        console.log('day', day);
-        console.log('month', month);
 
-        let desde = new Date(year, month - 1, day, 0, 0, 0)
-        let hasta = new Date(year, month - 1, day, 23, 59, 59)
-        console.log('desde', desde);
-        console.log('hasta', hasta);
         Ordenes.findAll({
             where: {
-                // Estado: 'RETIRADO'
-                FechaRetiro: { [Op.between]: [desde, hasta] },
+                Origen: req.params.origen,
+                Destino: req.params.destino,
+                TipoServicio: req.params.tiposervicio,
+                ManifiestoAsignado: 0  // Trae todas las OT que no han sido asignadas a un manifiesto
             }
         }).then(ordenes => { res.json(ordenes) })
     });
@@ -83,12 +88,17 @@ module.exports = function (router) {
         let year = req.params.year
         let month = req.params.month
         let day = req.params.day
-        let desde = new Date(year, month - 1, day, 23, 59, 59)
+        let desde = new Date(year, month - 1, day)
         let diasAdelante = +req.params.diasAdelante
         let hasta = new Date(desde)
         hasta.setDate(hasta.getDate() + diasAdelante);
+
+        desde = dateFormat(desde, 'yyyy-mm-dd')
+        hasta = dateFormat(hasta, 'yyyy-mm-dd')
+
         console.log('desde', desde);
         console.log('hasta', hasta);
+
         let otasignado = req.params.otasignado;
         console.log('otasignado', otasignado);
         let query = {
@@ -103,10 +113,13 @@ module.exports = function (router) {
                 },
                 NumeroOTAsignado: 1
             }
-
         }
         console.log('query', query);
         Ordenes.findAll({
+            include: [
+                { model: Documentos, as: 'Documentos' },
+                { model: Articulos, as: 'Articulos' },
+            ],
             where: query
         }).then(ordenes => { res.json(ordenes) })
     });
@@ -146,8 +159,8 @@ module.exports = function (router) {
                 ]
             },
             include: [
-                { model: Documentos },
-                { model: Articulos },
+                { model: Documentos, as: 'Documentos' },
+                { model: Articulos, as: 'Articulos' },
             ],
             order: [['NumeroOT', 'desc']],
             limit: 200
@@ -160,8 +173,8 @@ module.exports = function (router) {
         Ordenes.findAll({
             where: { NumeroOTAsignado: true },
             include: [
-                { model: Documentos },
-                { model: Articulos },
+                { model: Documentos, as: 'Documentos' },
+                { model: Articulos, as: 'Articulos' },
             ],
             order: [['NumeroOT', 'desc']],
             limit: 200
@@ -209,10 +222,12 @@ module.exports = function (router) {
                 Id: req.params.id
             },
             include: [
-                { model: Documentos },
-                { model: Articulos },
+                { model: Documentos, as: 'Documentos' },
+                { model: Articulos, as: 'Articulos' },
             ]
-        }).then(orden => { res.json(orden) })
+        }).then(orden => {
+            res.json(orden)
+        })
     });
 
     router.get("/api/getordenbyot/:numeroot", async (req, res) => {
@@ -220,7 +235,11 @@ module.exports = function (router) {
         Ordenes.findOne({
             where: {
                 NumeroOT: req.params.numeroot
-            }
+            },
+            include: [
+                { model: Documentos, as: 'Documentos' },
+                { model: Articulos, as: 'Articulos' },
+            ]
         }).then(orden => { res.json(orden) })
     });
 
@@ -245,6 +264,12 @@ module.exports = function (router) {
 
     router.put("/api/updateorden", async function (req, res) {
         console.log('pasó por updateorden')
+        if (req.body.Id == '' || !isNumber(req.body.Id)) {
+            res.status(403).json('Está intentando reemplazar una OT con otra')
+            return;
+        }
+        let idEditando = +req.body.Id + 0
+
         if (req.body.NumeroOT === '')
             req.body.NumeroOT = null
         if (req.body.TarifaAplicada === '')
@@ -278,23 +303,24 @@ module.exports = function (router) {
         let documentos = req.body.Documentos
         req.body.DocumentosConcat = ''
         //Concateno documentos para dejarlo en el campo Documentos
-        if (documentos != undefined)
+        if (documentos != undefined) {
             documentos.forEach(doc => {
                 req.body.DocumentosConcat += doc.documento + ': ' + doc.numero + '\n'
                 if (doc.valor === '')
                     doc.valor = 0
             });
+        }
 
         let articulos = req.body.Articulos
 
-        Ordenes.update(req.body, { where: { Id: req.body.Id } }).then(orden => {
+        Ordenes.update(req.body, { where: { Id: idEditando } }).then(orden => {
 
             //Actualizar Documentos
-            Documentos.destroy({ where: { IdOrden: req.body.Id } })
+            Documentos.destroy({ where: { IdOrden: idEditando } })
                 .then(destroyed => {
                     if (documentos != undefined) {
                         documentos.forEach(doc => {
-                            doc.IdOrden = req.body.Id
+                            doc.IdOrden = idEditando
                             if (doc.valor === '')
                                 doc.valor = 0
                         });
@@ -303,17 +329,22 @@ module.exports = function (router) {
                 })
 
             //Actualizar Articulos
-            Articulos.destroy({ where: { IdOrden: req.body.Id } })
+            console.log('Actualiza Artículos en updateorden');
+            if (idEditando == '') {
+                console.log('idEditando es vacío');
+                console.log('req.body dentro del if', req.body);
+            }
+            Articulos.destroy({ where: { IdOrden: idEditando } })
                 .then(destroyed => {
                     if (articulos != undefined) {
                         articulos.forEach(art => {
-                            art.IdOrden = req.body.Id
+                            art.IdOrden = idEditando
                         });
                         Articulos.bulkCreate(articulos).then()
                     }
                 })
 
-            //No sé para qué es esto
+            //En el caso que sea la primeta vez que se le está asignando el NumeroOT
             if (req.body.NumeroOT != null && !req.body.NumeroOTAsignado) {
                 req.json({
                     NumeroOT: req.body.NumeroOT,
@@ -322,7 +353,7 @@ module.exports = function (router) {
                 return;
             } else {
                 //Busco la orden actualizada para mandarla por socket
-                Ordenes.findOne({ where: { Id: req.body.Id } })
+                Ordenes.findOne({ where: { Id: idEditando } })
                     .then(orden => {
                         res.json('Registro actualizado')
 
@@ -353,7 +384,7 @@ module.exports = function (router) {
 
         // Se establece FechaInicial igual a la del Retiro para poder calcular días de postergación
         req.body.FechaInicial = req.body.FechaRetiro
-        console.log('req.body.FechaInicial', req.body.FechaInicial); 
+        console.log('req.body.FechaInicial', req.body.FechaInicial);
 
         let result = true
         //Verifica que el NumeroOT no exista
@@ -405,9 +436,6 @@ module.exports = function (router) {
             console.log('Se emite socket');
             io.emit('ruta_io', { MoveNext: false, orden: neworden });
         })
-
-
-
     });
 
     router.put("/api/anulaorden", (req, res) => {
@@ -420,7 +448,8 @@ module.exports = function (router) {
             Estado: 'NULO',
             Anulada: true,
             FechaAnulacion: new Date(),
-            QuienAnulo: req.body.quienanulo
+            QuienAnulo: req.body.quienanulo,
+            MotivoAnulacion: req.body.MotivoAnulacion
         }, { where: { Id: req.body.id } }).then(orden => { res.json('Registro anulado') })
     });
 

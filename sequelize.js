@@ -12,12 +12,13 @@ const MensajerosModel = require('./models/mensajeros')
 const TiposdepagoModel = require('./models/tiposdepagos')
 const TarifasModel = require('./models/tarifas')
 const RutasDiariasModel = require('./models/rutasdiarias')
+const ManifiestosModel = require('./models/manifiestos')
 
 const sequelize = new Sequelize('patagonia', 'zetta2019', 'zetta2019', {
   host:  'www.zst.cl',//'45.236.130.84', //
   dialect: 'mysql',
   logging: false,
-  operatorsAliases: 0,
+  operatorsAliases: 0, 
   pool: { 
     max: 10,
     min: 0,
@@ -42,11 +43,12 @@ const Mensajeros = MensajerosModel(sequelize, Sequelize)
 const Tiposdepago = TiposdepagoModel(sequelize, Sequelize)
 const Tarifas = TarifasModel(sequelize, Sequelize)
 const RutasDiarias = RutasDiariasModel(sequelize, Sequelize)
+const Manifiestos = ManifiestosModel(sequelize, Sequelize)
 
 // Documentos.belongsTo(Ordenes, { foreignKey: 'IdOrden', onDelete: 'cascade' })
 // Articulos.belongsTo(Ordenes, { foreignKey: 'IdOrden', onDelete: 'cascade' })
-Ordenes.hasMany(Documentos, { foreignKey: 'IdOrden', onDelete: 'cascade' })
-Ordenes.hasMany(Articulos, { foreignKey: 'IdOrden', onDelete: 'cascade' })
+Ordenes.hasMany(Documentos, { foreignKey: 'IdOrden', as:'Documentos', onDelete: 'cascade' })
+Ordenes.hasMany(Articulos, { foreignKey: 'IdOrden', as: 'Articulos', onDelete: 'cascade' }) 
 // Usuarios.belongsTo(Comunidades, { foreignKey: 'IdComunidad', as: 'Comunidades', onDelete: 'cascade' })
 // WebUsers.belongsTo(Comunidades, { foreignKey: 'IdComunidad', as: 'Comunidad', onDelete: 'cascade' })
 // Usuarios.belongsTo(Domicilios, { foreignKey: 'IdDomicilio', as: 'Domicilio' })
@@ -70,5 +72,6 @@ module.exports = {
   Mensajeros,
   Tiposdepago,
   Tarifas,
-  RutasDiarias 
+  RutasDiarias,
+  Manifiestos
 }

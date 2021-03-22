@@ -1,0 +1,115 @@
+<body style="font-family:Arial, Helvetica, sans-serif; -webkit-print-color-adjust:exact">
+  <table style="width: 100%;">
+    <tr>
+      <th>
+        <div style="margin-top: 2px;">
+          <img src="http://45.236.130.84/admin/assets/img/Logo500x228.png" width="200px">
+      </th>
+      <th style="width: 20%;"></th>
+      <th>
+        <div style="width: 80%; font-size: largeR;">MANIFIESTO DE<br>CARGA EXPRESA</div>
+      </th>
+    </tr>
+  </table>
+
+  <!-- Origen Destino Servicio -->
+  <table style="font-size: x-small; width: 100%; border-spacing: 0; border-width: thin;">
+    <tr>
+      <th style="width: 10%; font-size: smaller; text-align: left;">
+        ORIGEN
+      </th>
+      <th style="width: 40%;text-align: start;">{{ NombreOrigen }}
+      </th>
+      <th style="width: 29%;"></th>
+      <th style="width: 7%;"></th>
+      <th style="width: 7%;"></th>
+      <th style="width: 7%;"></th>
+    </tr>
+    <tr>
+      <th>
+        <div style="font-size: smaller; text-align: left;">DESTINO</div>
+      </th>
+      <th>
+        <div style="text-align: start;">{{ NombreDestino }}</div>
+      </th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </table>
+
+  <br>
+
+  <!-- Títulos-->
+  <table
+    style="font-size:0.4em; width: 100%; border-collapse: collapse;">
+    <tr style="background-color: yellow; ">
+      <th style="text-align: center; border-style:solid; border-width: 1px; border-color: rgba(128, 128, 128, 0.5); padding: 3px 0px 3px 0px" colspan="2">TRANSPORTE</th>
+      <th style="text-align: center; border-style:solid; border-width: 1px; border-color: rgba(128, 128, 128, 0.5); border-collapse: collapse;">NÚMERO INTERNO</th>
+      <th style="text-align: center; border-style:solid; border-width: 1px; border-color: rgba(128, 128, 128, 0.5); border-collapse: collapse;">FECHA DE RECEPCIÓN</th>
+      <th style="text-align: center; border-style:solid; border-width: 1px; border-color: rgba(128, 128, 128, 0.5); border-collapse: collapse;">SALIDA DE CAMIÓN</th>
+      <th style="text-align: center; border-style:solid; border-width: 1px; border-color: rgba(128, 128, 128, 0.5); border-collapse: collapse;" colspan="6">FECHA DE ENTREGA</th>
+    </tr>
+    <tr>
+      <td style="text-align: center; border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); padding: 3px 0px 3px 0px" colspan="2">
+        MARDAN</td>
+      <td style="text-align: center; border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); border-collapse: collapse;">35250</td>
+      <td style="text-align: center; border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); ">09 MARZO 2021</td>
+      <td style="text-align: center; border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); ">10 MARZO 2021</td>
+      <td style="text-align: center; border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); " colspan="6"></td>
+    </tr>
+
+    <tr>
+      <td colspan="11" style="padding-top: 20px;"></td> <!-- fila vacía para dejar espacio -->
+    </tr>
+    <tr style="background-color: yellow; ">
+      <th style="border-style: solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); padding: 3px 0px 3px 0px">O.T.</th>
+      <th style="border-style: solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">VALOR</th>
+      <th style="border-style: solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">DESTINATARIO</th>
+      <th style="border-style: solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">REMITENTE</th>
+      <th style="border-style: solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">CONTENIDO</th>
+      <th style="border-style: solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">POR<br>VALIJA</th>
+      <th style="border-style: solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">POR<br>FUERA</th>
+      <th style="border-style: solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">KILOS</th>
+      <th style="border-style: solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">KG. VOL</th>
+      <th style="border-style: solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">FORMA<br>DE PAGO</th>
+      <th style="border-style: solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">MEDIO<br>DE PAGO</th>
+    </tr>
+
+    <tr *ngFor="let item of ordenesEnManifiesto; let i = index">
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); padding: 2px 0px 2px 0px">41309</td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">
+        <div style="color: red;"> $729.184</div>
+      </td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">COM MACLEAN - PTO NATALES</td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">NELLY VALENZUELA</td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);">STOCKINETTE</td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); text-align: center;">
+        <div *ngIf="item.EsValija"></div>
+      </td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); text-align: center;">
+        <div *ngIf="!item.EsValija">15</div>
+      </td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); text-align: center;">393</td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); text-align: center;">624</td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); text-align: center;">CTA. CTE.</td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); text-align: center;"></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5);  background-color: yellow;">
+        <div style="color: red;"> $921.771</div>
+      </td>
+      <td></td>
+      <td></td>
+      <td style="text-align: end; font-size: xx-small;">PZS.</td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); text-align: center;">-</td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); text-align: center;">91</td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); text-align: center;">2414</td>
+      <td style="border-style:solid; border-width: thin; border-color: rgba(128, 128, 128, 0.5); text-align: center;">1550</td>
+      <td>Kg.</td>
+    </tr>
+  </table>
+
+</body>
