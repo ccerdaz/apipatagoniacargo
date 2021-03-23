@@ -48,11 +48,26 @@ module.exports = function (router) {
     });
 
     //Trae sólo las que están en Estado=RETIRADO
-    router.get("/api/getordenesmanifiesto/:origen/:destino/:tiposervicio", async (req, res) => {
+    router.get("/api/getordenesmanifiesto/:origen/:destino/:tiposervicio/:y/:m/:d/:diasAdelante", async (req, res) => {
         console.log('pasó por getordenesmanifiesto')
+
+        let year = req.params.y
+        let month = req.params.m
+        let day = req.params.d
+        let desde = new Date(year, month - 1, day)
+        let diasAdelante = +req.params.diasAdelante
+        let hasta = new Date(desde)
+        hasta.setDate(hasta.getDate() + diasAdelante);
+
+        desde = dateFormat(desde, 'yyyy-mm-dd')
+        hasta = dateFormat(hasta, 'yyyy-mm-dd')
+
+        console.log('desde', desde);
+        console.log('hasta', hasta);
 
         Ordenes.findAll({
             where: {
+                FechaRetiro: { [Op.between]: [desde, hasta] },
                 Origen: req.params.origen,
                 Destino: req.params.destino,
                 TipoServicio: req.params.tiposervicio,
@@ -153,6 +168,7 @@ module.exports = function (router) {
         Ordenes.findAll({
             where: {
                 NumeroOTAsignado: true,
+                NumeroFactura: 0,
                 [Op.or]: [
                     { Estado: 'ENVIADO' },
                     { Estado: 'ENTREGADO' }
@@ -280,7 +296,7 @@ module.exports = function (router) {
 
         let result = true
         //Verifica que el NumeroOT no exista
-        if (req.body.NumeroOT != null && req.body.NumeroOTAsignado == false) {
+        if (req.body.NumeroOT != null && (req.body.NumeroOTAsignado == false || req.body.NumeroOTAsignado == null)) {
             result = await Ordenes.findOne({ where: { NumeroOT: req.body.NumeroOT } })
                 .then(orden => {
                     result = true
@@ -291,7 +307,7 @@ module.exports = function (router) {
                 })
         }
 
-        // Si result es false termino el método
+        // Si result es false termino el método 
         if (result == false)
             return;
 
@@ -303,7 +319,7 @@ module.exports = function (router) {
         let documentos = req.body.Documentos
         req.body.DocumentosConcat = ''
         //Concateno documentos para dejarlo en el campo Documentos
-        if (documentos != undefined) {
+        if (documentos != undefined) { 
             documentos.forEach(doc => {
                 req.body.DocumentosConcat += doc.documento + ': ' + doc.numero + '\n'
                 if (doc.valor === '')
@@ -378,6 +394,10 @@ module.exports = function (router) {
             req.body.TarifaAplicada = null
 
         req.body.FechaRetiro += ' 12:00:00'
+
+        //if (req.body.Anulada == '' || req.body.Anulada == null ) {
+        req.body.Anulada = 0
+        //}
 
         // Evita que se guarde FechaEntrega=''
         if (req.body.FechaEntrega === '') { req.body.FechaEntrega = null }

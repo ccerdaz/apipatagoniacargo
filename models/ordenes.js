@@ -56,7 +56,7 @@ module.exports = (sequelize, type) => {
         MotivoAnulacion: type.STRING(100), 
         OrdenDeCompra: type.STRING(45),
         GiroDestinatario: type.STRING(100),
-        EmailDestinatario: type.STRING(45),
+        EmailDestinatario: type.STRING(45), 
 
         ManifiestoAsignado: { type: type.INTEGER, defaultValue: 0 },
         FechaEntrega: type.DATE,
@@ -65,12 +65,15 @@ module.exports = (sequelize, type) => {
         RutReceptor: type.STRING(15),
         FechaInicial: type.DATE,
         CreadoPor: type.STRING(45),
-        NumeroFactura: type.STRING(20),
         MedioDePago: type.STRING(20),
         NombreMensajero: type.STRING(100),
         ContactoDestinatario: type.STRING(45),
         TelefonoDestinatario: type.STRING(45),
-
+        FechaFactura: type.STRING(10),
+        NumeroFactura: type.INTEGER,
+        Token: type.STRING(100),
+        TipoDTE: type.INTEGER,
+        PagaRemitente: type.BOOLEAN,
     })
 }
 

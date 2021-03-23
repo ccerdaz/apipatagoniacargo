@@ -7,7 +7,7 @@
         "Acteco": 479100,
         "DirOrigen": "ARTURO PRAT 527   CURICO",
         "CmnaOrigen": "Curicó",
-        "CdgSIISucur": "81303347",
-        "rutaPostDTE": "https://dev-api.haulmer.com/v2/dte/document"
-    }
+        "CdgSIISucur": "81303347"
+    },
+    "rutaHaulmer": "https://dev-api.haulmer.com/v2/dte/"
 }

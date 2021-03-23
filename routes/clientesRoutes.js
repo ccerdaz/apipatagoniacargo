@@ -39,7 +39,7 @@ module.exports = function (router) {
 
                 Ordenes.count({
                     where: {
-                        FechaRetiro: { [Op.between]: [desde, hasta] }
+                        FechaRetiro: { [Op.between]: [desde, hasta] } 
                     }
                 }).then(ordenes => {
 
@@ -57,6 +57,7 @@ module.exports = function (router) {
     router.put("/api/updatecliente", (req, res) => {
         console.log('pasó por updatecliente')
         console.log('req.body', req.body);
+        req.body.Rut = req.body.Rut.trim()
         Clientes.update(req.body, { where: { Id: req.body.Id } }).then(cliente => { res.json('Registro actualizado') })
     });
 
